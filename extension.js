@@ -14,58 +14,63 @@ function activate(context) {
 	// This line of code will only be executed once when your extension is activated
 	console.log('Congratulations, your extension "span-decorator" is now active!');
 
-	let disposable = vscode.commands.registerCommand('span-decorator.decorateHtml', 
-		function () {
-			const editor = vscode.window.activeTextEditor;
-			if (!editor) {
-				vscode.window.showInformationMessage('Open a file to decorate text with HTML tags');
-				return;
-			}
-		
-			const selection = editor.selection;
-			const text = editor.document.getText(selection);
-		
-			// Example: Wrap selected text with <b> tags
-			const decoratedText = `<span class="citazione" data-formato_standard="${text}">${text}</span>`;
-		
-			editor.edit(editBuilder => {
-				editBuilder.replace(selection, decoratedText);
-			});
-			vscode.languages.setTextDocumentLanguage(editor.document, 'html');
-		});
-	context.subscriptions.push(disposable);
 
-	disposable = vscode.commands.registerCommand('span-decorator.highlightText', 
-        function () {
-            const editor = vscode.window.activeTextEditor;
-            if (!editor) {
-                return; // No open text editor
+
+    const decorationType = vscode.window.createTextEditorDecorationType({
+        backgroundColor: 'rgba(255,255,0,0.5)' // Example highlight color
+    });
+    function highlight(){
+        const editor = vscode.window.activeTextEditor;
+        if (!editor) {
+            return; // No open text editor
+        }
+        vscode.window.showInformationMessage('span.highlightText');
+
+        const text = editor.document.getText();
+        const regex = /articolo|comma|decreto|legge|\d+/g; // Replace YourRegexPattern with your regex
+        let match;
+        const decorationsArray = [];
+
+        while ((match = regex.exec(text)) !== null) {
+            const startPos = editor.document.positionAt(match.index);
+            const endPos = editor.document.positionAt(match.index + match[0].length);
+            const decoration = { range: new vscode.Range(startPos, endPos) };
+
+            // Check if the match is outside <span> tags
+            if (isOutsideSpanTags(text, match.index)) {
+                decorationsArray.push(decoration);
             }
-            vscode.window.showInformationMessage('span.highlightText');
+        }
 
-            const text = editor.document.getText();
-            const regex = /articolo|comma|decreto|legge|\d+/g; // Replace YourRegexPattern with your regex
-            let match;
-            const decorationsArray = [];
-            const decorationType = vscode.window.createTextEditorDecorationType({
-                backgroundColor: 'rgba(255,255,0,0.5)' // Example highlight color
-            });
+        editor.setDecorations(decorationType, decorationsArray);
+    }
 
-            while ((match = regex.exec(text)) !== null) {
-                const startPos = editor.document.positionAt(match.index);
-                const endPos = editor.document.positionAt(match.index + match[0].length);
-                const decoration = { range: new vscode.Range(startPos, endPos) };
-
-                // Check if the match is outside <span> tags
-                if (isOutsideSpanTags(text, match.index)) {
-                    decorationsArray.push(decoration);
-                }
-            }
-
-            editor.setDecorations(decorationType, decorationsArray);
-        });
+    let disposable = vscode.commands.registerCommand('span-decorator.highlightText',  highlight);
 
     context.subscriptions.push(disposable);
+
+    disposable = vscode.commands.registerCommand('span-decorator.decorateHtml', 
+    function () {
+        const editor = vscode.window.activeTextEditor;
+        if (!editor) {
+            vscode.window.showInformationMessage('Open a file to decorate text with HTML tags');
+            return;
+        }
+    
+        const selection = editor.selection;
+        const text = editor.document.getText(selection);
+    
+        // Example: Wrap selected text with <b> tags
+        const decoratedText = `<span class="citazione" data-formato_standard="${text}">${text}</span>`;
+    
+        editor.edit(editBuilder => {
+            editBuilder.replace(selection, decoratedText);
+        });
+        vscode.languages.setTextDocumentLanguage(editor.document, 'html');
+        editor.setDecorations(decorationType, []);
+    });
+    context.subscriptions.push(disposable);
+
 }
 
 function isOutsideSpanTags(text, index) {
