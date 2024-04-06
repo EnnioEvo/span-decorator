@@ -27,7 +27,7 @@ function activate(context) {
         vscode.window.showInformationMessage('span.highlightText');
 
         const text = editor.document.getText();
-        const regex = /articol|comm|decreto|legge|\d+/g; // Replace YourRegexPattern with your regex
+        const regex = /articolo|articoli|comma|commi|decreto|legge/g; // Replace YourRegexPattern with your regex
         let match;
         const decorationsArray = [];
 
