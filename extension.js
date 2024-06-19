@@ -1,6 +1,8 @@
 // The module 'vscode' contains the VS Code extensibility API
 // Import the module and reference it with the alias vscode in your code below
 const vscode = require('vscode');
+const path = require('path');
+const fs = require('fs');
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -8,6 +10,57 @@ const vscode = require('vscode');
 /**
  * @param {vscode.ExtensionContext} context
  */
+
+
+
+  async function openAdjacentFile(next = true) {
+    const activeEditor = vscode.window.activeTextEditor;
+    if (!activeEditor) {
+        vscode.window.showWarningMessage('No active editor detected.');
+        return;
+    }
+
+    const currentFilePath = activeEditor.document.fileName;
+    const currentFolder = path.dirname(currentFilePath);
+
+    fs.readdir(currentFolder, (err, files) => {
+        if (err) {
+            vscode.window.showErrorMessage(`Failed to read directory: ${err}`);
+            return;
+        }
+
+        // Filter files (exclude directories) and sort them lexicographically
+        const siblingFiles = files.filter(file => !fs.statSync(path.join(currentFolder, file)).isDirectory());
+        siblingFiles.sort((a, b) => a.localeCompare(b, undefined, { numeric: true, sensitivity: 'base' }));
+
+        const currentFileName = path.basename(currentFilePath);
+        const currentIndex = siblingFiles.indexOf(currentFileName);
+        let targetIndex = currentIndex + (next ? 1 : -1);
+
+        if (targetIndex < 0 || targetIndex >= siblingFiles.length) {
+            vscode.window.showInformationMessage('No adjacent file found.');
+            return;
+        }
+
+        const nextFilePath = path.join(currentFolder, siblingFiles[targetIndex]);
+
+        vscode.workspace.openTextDocument(nextFilePath).then(doc => {
+            vscode.window.showTextDocument(doc);
+        }, (error) => {
+            vscode.window.showErrorMessage(`Failed to open file: ${error}`);
+        });
+    });
+}
+
+async function openNextFile(){
+    await openAdjacentFile(next = true)
+}
+
+async function openPreviousFile(){
+    await openAdjacentFile(next = false)
+}
+
+
 function activate(context) {
 
 	// Use the console to output diagnostic information (console.log) and errors (console.error)
@@ -24,8 +77,8 @@ function activate(context) {
         if (!editor) {
             return; // No open text editor
         }
-        vscode.window.showInformationMessage('span.highlightText');
-
+        // vscode.window.showInformationMessage('span.highlightText');
+        vscode.languages.setTextDocumentLanguage(editor.document, 'html');
         const text = editor.document.getText();
         const regex = /articolo|articoli|comma|commi|decreto|legge/g; // Replace YourRegexPattern with your regex
         let match;
@@ -70,6 +123,29 @@ function activate(context) {
         editor.setDecorations(decorationType, []);
     });
     context.subscriptions.push(disposable);
+
+    // Open next folder files
+    disposable = vscode.commands.registerCommand('span-decorator.openNextFile', openNextFile);
+    context.subscriptions.push(disposable);
+
+    // Open next folder files
+    disposable = vscode.commands.registerCommand('span-decorator.openPreviousFile', openPreviousFile);
+    context.subscriptions.push(disposable);
+
+
+    function setHtmlLanguageForEditor(editor) {
+        // vscode.window.showInformationMessage('span.highlightText');
+        if (editor) {
+            // vscode.languages.setTextDocumentLanguage(editor.document, 'html');
+            highlight();
+        }
+    }
+
+    vscode.window.onDidChangeActiveTextEditor(setHtmlLanguageForEditor, null, context.subscriptions);
+    vscode.workspace.onDidOpenTextDocument(doc => {
+        const editor = vscode.window.visibleTextEditors.find(e => e.document === doc);
+        setHtmlLanguageForEditor(editor);
+    }, null, context.subscriptions);
 
 }
 

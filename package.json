@@ -22,6 +22,14 @@
     {
         "command": "span-decorator.highlightText",
         "title": "Highlight Text"
+    },
+    {
+      "command": "span-decorator.openNextFile",
+      "title": "Open next file"
+    },
+    {
+      "command": "span-decorator.openPreviousFile",
+      "title": "Open previous file"
     }   
   ],
     "keybindings": [
@@ -36,6 +44,30 @@
           "key": "ctrl+e",
           "mac": "cmd+e",
           "when": "editorTextFocus"
+      },
+      {
+        "command": "span-decorator.openNextFile",
+        "key": "alt+right",
+        "mac": "cmd+right",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "span-decorator.openNextFile",
+        "key": "alt+2",
+        "mac": "cmd+2",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "span-decorator.openPreviousFile",
+        "key": "alt+left",
+        "mac": "cmd+left",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "span-decorator.openPreviousFile",
+        "key": "alt+1",
+        "mac": "cmd+1",
+        "when": "editorTextFocus"
       }
   ]
   },
