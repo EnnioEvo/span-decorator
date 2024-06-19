@@ -141,10 +141,9 @@ function activate(context) {
         }
     }
 
-    vscode.window.onDidChangeActiveTextEditor(setHtmlLanguageForEditor, null, context.subscriptions);
+    vscode.window.onDidChangeActiveTextEditor(highlight, null, context.subscriptions);
     vscode.workspace.onDidOpenTextDocument(doc => {
-        const editor = vscode.window.visibleTextEditors.find(e => e.document === doc);
-        setHtmlLanguageForEditor(editor);
+        highlight()
     }, null, context.subscriptions);
 
 }
